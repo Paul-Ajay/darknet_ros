@@ -103,7 +103,7 @@ class YoloObjectDetector : public rclcpp::Node
    * Callback of camera.
    * @param[in] msg image pointer.
    */
-  void cameraCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+  void cameraCallback(const sensor_msgs::msg::Image::SharedPtr msg);
 
 
   //! Typedefs.
@@ -155,7 +155,8 @@ class YoloObjectDetector : public rclcpp::Node
   std::shared_ptr<image_transport::ImageTransport> it_;
 
   //! ROS subscriber and publisher.
-  image_transport::Subscriber imageSubscriber_;
+  // image_transport::Subscriber imageSubscriber_;
+  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr imageSubscriber_;
   rclcpp::Publisher<darknet_ros_msgs::msg::ObjectCount>::SharedPtr objectPublisher_;
   rclcpp::Publisher<darknet_ros_msgs::msg::BoundingBoxes>::SharedPtr boundingBoxesPublisher_;
 

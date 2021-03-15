@@ -178,8 +178,14 @@ void YoloObjectDetector::init()
   it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
   
   using std::placeholders::_1;
-  imageSubscriber_ = it_->subscribe(cameraTopicName, cameraQueueSize,
+  rclcpp::QoS image_subscriber_qos(cameraQueueSize);
+  image_subscriber_qos.durability_volatile().best_effort();
+  imageSubscriber_ = this->create_subscription<sensor_msgs::msg::Image>(
+    cameraTopicName, image_subscriber_qos,
     std::bind(&YoloObjectDetector::cameraCallback, this, _1));
+
+  // imageSubscriber_ = it_->subscribe(cameraTopicName, image_subscriber_qos,
+  //   std::bind(&YoloObjectDetector::cameraCallback, this, _1));
 
   rclcpp::QoS object_publisher_qos(objectDetectorQueueSize);
   if (objectDetectorLatch) {
@@ -218,14 +224,14 @@ void YoloObjectDetector::init()
     std::bind(&YoloObjectDetector::checkForObjectsActionAcceptedCB, this, _1));
 }
 
-void YoloObjectDetector::cameraCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
+void YoloObjectDetector::cameraCallback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
   RCLCPP_DEBUG(get_logger(), "[YoloObjectDetector] USB image received.");
 
   cv_bridge::CvImagePtr cam_image;
 
   try {
-    cam_image = cv_bridge::toCvCopy(msg, "bgr8");
+    cam_image = cv_bridge::toCvCopy(msg, "rgb8");
   } catch (cv_bridge::Exception& e) {
     RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
     return;
