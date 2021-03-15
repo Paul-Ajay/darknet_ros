@@ -45,21 +45,16 @@
 #include "cublas_v2.h"
 #endif
 
-extern "C" {
 #include "network.h"
 #include "detection_layer.h"
 #include "region_layer.h"
 #include "cost_layer.h"
 #include "utils.h"
 #include "parser.h"
+#include "image.h"
 #include "box.h"
 #include "darknet_ros/image_interface.h"
 #include <sys/time.h>
-}
-
-extern "C" void ipl_into_image(IplImage* src, image im);
-extern "C" image ipl_to_image(IplImage* src);
-extern "C" void show_image_cv(image p, const char *name, IplImage *disp);
 
 namespace darknet_ros {
 
@@ -70,11 +65,14 @@ typedef struct
   int num, Class;
 } RosBox_;
 
-typedef struct
-{
-  IplImage* image;
-  std_msgs::msg::Header header;
-} IplImageWithHeader_;
+struct MatWithHeader_ {
+    cv::Mat image;
+    std_msgs::msg::Header header;
+
+    MatWithHeader_() = default;
+    MatWithHeader_(cv::Mat img, std_msgs::msg::Header hdr):
+        image(img.clone()), header(hdr) {}
+};
 
 class YoloObjectDetector : public rclcpp::Node
 {
@@ -187,7 +185,7 @@ class YoloObjectDetector : public rclcpp::Node
   image buffLetter_[3];
   int buffId_[3];
   int buffIndex_ = 0;
-  IplImage * ipl_;
+  cv::Mat ipl_;
   float fps_ = 0;
   float demoThresh_ = 0;
   float demoHier_ = .5;
@@ -249,7 +247,7 @@ class YoloObjectDetector : public rclcpp::Node
 
   void yolo();
 
-  IplImageWithHeader_ getIplImageWithHeader();
+  MatWithHeader_ getIplImageWithHeader();
 
   bool getImageStatus(void);
 
