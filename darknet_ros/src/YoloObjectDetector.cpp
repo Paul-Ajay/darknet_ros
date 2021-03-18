@@ -175,17 +175,11 @@ void YoloObjectDetector::init()
   get_parameter("publishers.detection_image.queue_size", detectionImageQueueSize);
   get_parameter("publishers.detection_image.latch", detectionImageLatch);
 
-  it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
-  
   using std::placeholders::_1;
-  rclcpp::QoS image_subscriber_qos(cameraQueueSize);
-  image_subscriber_qos.durability_volatile().best_effort();
-  imageSubscriber_ = this->create_subscription<sensor_msgs::msg::Image>(
-    cameraTopicName, image_subscriber_qos,
-    std::bind(&YoloObjectDetector::cameraCallback, this, _1));
-
-  // imageSubscriber_ = it_->subscribe(cameraTopicName, image_subscriber_qos,
-  //   std::bind(&YoloObjectDetector::cameraCallback, this, _1));
+  imageSubscriber_ = image_transport::create_subscription(this, 
+    cameraTopicName,
+    std::bind(&YoloObjectDetector::cameraCallback, this, _1),
+    "raw", rmw_qos_profile_sensor_data);
 
   rclcpp::QoS object_publisher_qos(objectDetectorQueueSize);
   if (objectDetectorLatch) {
@@ -224,7 +218,7 @@ void YoloObjectDetector::init()
     std::bind(&YoloObjectDetector::checkForObjectsActionAcceptedCB, this, _1));
 }
 
-void YoloObjectDetector::cameraCallback(const sensor_msgs::msg::Image::SharedPtr msg)
+void YoloObjectDetector::cameraCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
   RCLCPP_DEBUG(get_logger(), "[YoloObjectDetector] USB image received.");
 

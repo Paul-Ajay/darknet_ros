@@ -24,7 +24,7 @@
 #include "std_msgs/msg/header.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "geometry_msgs/msg/point.hpp"
-#include "image_transport/image_transport.h"
+#include "image_transport/image_transport.hpp"
 
 // OpenCv
 #include <opencv2/imgproc/imgproc.hpp>
@@ -103,7 +103,7 @@ class YoloObjectDetector : public rclcpp::Node
    * Callback of camera.
    * @param[in] msg image pointer.
    */
-  void cameraCallback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void cameraCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
 
 
   //! Typedefs.
@@ -151,12 +151,8 @@ class YoloObjectDetector : public rclcpp::Node
   bool preempt_requested_;
   std::shared_ptr<GoalHandleCheckForObjectsAction> goal_handle_;
 
-  //! Advertise and subscribe to image topics.
-  std::shared_ptr<image_transport::ImageTransport> it_;
-
   //! ROS subscriber and publisher.
-  // image_transport::Subscriber imageSubscriber_;
-  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr imageSubscriber_;
+  image_transport::Subscriber imageSubscriber_;
   rclcpp::Publisher<darknet_ros_msgs::msg::ObjectCount>::SharedPtr objectPublisher_;
   rclcpp::Publisher<darknet_ros_msgs::msg::BoundingBoxes>::SharedPtr boundingBoxesPublisher_;
 
